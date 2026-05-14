@@ -58,7 +58,7 @@ const loader = new GLTFLoader();
 let grandeRoue;
 let mixer;
 
-loader.load('./grande-roue.glb', (gltf) => {
+loader.load('grande-roue.glb', (gltf) => {
 
   grandeRoue = gltf.scene;
   scene.add(grandeRoue);
