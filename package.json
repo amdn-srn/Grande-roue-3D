@@ -1,0 +1,17 @@
+{
+  "name": "grande-roue-3d",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "dev": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "three": "^0.184.0",
+    "vite": "^8.0.13"
+  }
+}
