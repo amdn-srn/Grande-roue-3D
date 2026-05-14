@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import { GLTFLoader } from "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x05060a);
@@ -14,29 +14,24 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
-const moonLight = new THREE.DirectionalLight(0xbfd9ff, 1.6);
-moonLight.position.set(8, 14, 6);
-scene.add(moonLight);
-
-const fillLight = new THREE.PointLight(0x1a2a3a, 0.8, 80);
-fillLight.position.set(-10, 5, -10);
-scene.add(fillLight);
+const light = new THREE.DirectionalLight(0xbfd9ff, 1.5);
+light.position.set(10, 15, 10);
+scene.add(light);
 
 const starGeo = new THREE.BufferGeometry();
-const starCount = 2500;
+const starCount = 2000;
 
-const positions = new Float32Array(starCount * 3);
+const pos = new Float32Array(starCount * 3);
 
 for (let i = 0; i < starCount * 3; i++) {
-  positions[i] = (Math.random() - 0.5) * 220;
+  pos[i] = (Math.random() - 0.5) * 200;
 }
 
-starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+starGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
 
 const stars = new THREE.Points(
   starGeo,
@@ -48,39 +43,42 @@ scene.add(stars);
 let mouseX = 0;
 let mouseY = 0;
 
-window.addEventListener('mousemove', (e) => {
+window.addEventListener("mousemove", (e) => {
   mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
   mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
 });
 
 const loader = new GLTFLoader();
 
-let grandeRoue;
+let roue;
 let mixer;
 
-loader.load('grande-roue.glb', (gltf) => {
+loader.load(
+  "./grande-roue.glb",
+  (gltf) => {
+    roue = gltf.scene;
+    scene.add(roue);
 
-  grandeRoue = gltf.scene;
-  scene.add(grandeRoue);
+    const box = new THREE.Box3().setFromObject(roue);
+    const center = box.getCenter(new THREE.Vector3());
+    roue.position.sub(center);
 
-  const box = new THREE.Box3().setFromObject(grandeRoue);
-  const center = box.getCenter(new THREE.Vector3());
-  grandeRoue.position.sub(center);
+    roue.position.y += 6;
 
-  grandeRoue.position.y += 7;
+    const size = box.getSize(new THREE.Vector3()).length();
+    const scale = (12 / size) * 2;
+    roue.scale.set(scale, scale, scale);
 
-  const size = box.getSize(new THREE.Vector3()).length();
-  const scale = (12 / size) * 2;
-  grandeRoue.scale.set(scale, scale, scale);
+    roue.rotation.y = -Math.PI / 2;
 
-  grandeRoue.rotation.y = -Math.PI / 2;
-
-  if (gltf.animations && gltf.animations.length > 0) {
-    mixer = new THREE.AnimationMixer(grandeRoue);
-    mixer.clipAction(gltf.animations[0]).play();
-  }
-
-});
+    if (gltf.animations.length) {
+      mixer = new THREE.AnimationMixer(roue);
+      mixer.clipAction(gltf.animations[0]).play();
+    }
+  },
+  undefined,
+  (err) => console.error(err)
+);
 
 let time = 0;
 
@@ -98,17 +96,11 @@ function animate() {
 
   camera.position.x = Math.cos(t) * radius;
   camera.position.z = Math.sin(t) * radius;
-  camera.position.y = 10 + Math.sin(time * 0.5) * 2 + (hover ? 1 : 0);
+  camera.position.y = 10 + Math.sin(time * 0.5) * 2;
 
   camera.lookAt(0, 5, 0);
 
   stars.rotation.y += 0.0002;
-
-  moonLight.position.x = 8 + mouseX * 2;
-  moonLight.position.y = 14 + mouseY * 2;
-
-  fillLight.position.x = -10 + mouseX;
-  fillLight.position.y = 5 + mouseY;
 
   if (mixer) mixer.update(0.016);
 
@@ -117,7 +109,7 @@ function animate() {
 
 animate();
 
-window.addEventListener('resize', () => {
+window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
