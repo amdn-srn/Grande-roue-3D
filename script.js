@@ -17,23 +17,24 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
-const moonLight = new THREE.DirectionalLight(0xbfd9ff, 1.6);
-moonLight.position.set(8, 14, 6);
-scene.add(moonLight);
+const lights = [];
+const colors = [0xff004c, 0x00d4ff, 0xffd400, 0xa100ff];
 
-const fillLight = new THREE.PointLight(0x1a2a3a, 0.8, 80);
-fillLight.position.set(-10, 5, -10);
-scene.add(fillLight);
+for (let i = 0; i < 6; i++) {
+  const light = new THREE.PointLight(colors[i % colors.length], 1.8, 60);
+  scene.add(light);
+  lights.push(light);
+}
 
 const starGeo = new THREE.BufferGeometry();
-const starCount = 2500;
+const starCount = 2000;
 
 const positions = new Float32Array(starCount * 3);
 
 for (let i = 0; i < starCount * 3; i++) {
-  positions[i] = (Math.random() - 0.5) * 220;
+  positions[i] = (Math.random() - 0.5) * 200;
 }
 
 starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
@@ -80,6 +81,8 @@ loader.load('grande-roue.glb', (gltf) => {
     mixer.clipAction(gltf.animations[0]).play();
   }
 
+}, undefined, (error) => {
+  console.error('GLB error:', error);
 });
 
 let time = 0;
@@ -98,17 +101,19 @@ function animate() {
 
   camera.position.x = Math.cos(t) * radius;
   camera.position.z = Math.sin(t) * radius;
-  camera.position.y = 10 + Math.sin(time * 0.5) * 2 + (hover ? 1 : 0);
+  camera.position.y = 10 + Math.sin(time * 0.5) * 2;
 
   camera.lookAt(0, 5, 0);
 
   stars.rotation.y += 0.0002;
 
-  moonLight.position.x = 8 + mouseX * 2;
-  moonLight.position.y = 14 + mouseY * 2;
+  lights.forEach((l, i) => {
+    const angle = t + i * 0.8;
 
-  fillLight.position.x = -10 + mouseX;
-  fillLight.position.y = 5 + mouseY;
+    l.position.x = Math.cos(angle) * 14 + mouseX * 2;
+    l.position.z = Math.sin(angle) * 14;
+    l.position.y = 6 + Math.sin(time * 2 + i) * 2 + mouseY * 1.5;
+  });
 
   if (mixer) mixer.update(0.016);
 
